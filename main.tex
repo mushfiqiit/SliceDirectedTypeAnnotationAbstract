@@ -1,9 +1,16 @@
 \documentclass[sigplan,screen]{acmart}
 \usepackage[utf8]{inputenc}
 \usepackage{microtype}
+\usepackage{hyphenat}
+
 \makeatletter
-\def\UrlBreaks{\do\/\do-}
+\renewcommand{\@formatdoi}[1]{%
+  \href{https://doi.org/#1}{%
+    \mbox{https://doi.org/}\allowbreak\mbox{#1}%
+  }%
+}
 \makeatother
+
 %%% The following is specific to SPLASH '26-SRC and the paper
 %%% 'Slice-Guided, Context-Augmented Large Language Model Inference of Java Nullability Annotations'
 %%% by Mushfiqur Rahman Chowdhury.
@@ -135,7 +142,7 @@ Our contribution is a single, integrated technique which is a warning-guided, sl
 
 Beyond nullability, our goal is a type-system-independent technique; three of five stages already are checker-agnostic: warning extraction only needs a diagnostic with a source location, slicing via Specimin only needs declared types and signatures, not their nullability and merge-back only needs Java syntax. Adapting the pipeline to a new checker requires only two changes: the annotation vocabulary given to the LLM and the logic used in post-processing. We plan to test this on checkers for array-indexing safety~\cite{kellogg2018lightweight} and resource-leak detection~\cite{kellogg2021lightweight}.
 
-The approach still has limitations. A key one is Specimin itself. It is a young tool, and a warning's root method does not always reproduce inside the generated slice, so some warnings in the program slices never reach the LLM and the pipeline's resolution rate drops. We plan to evaluate on more, larger Java projects and multiple LLMs to further evaluate the performance of our pipeline. ~\cite{karimipour2025new}.
+The approach still has limitations. A key one is Specimin itself. It is a young tool, and a warning's root method does not always reproduce inside the generated slice, so some warnings in the program slices never reach the LLM and the pipeline's resolution rate drops. We plan to evaluate on more, larger Java projects and multiple LLMs to further evaluate the performance of our pipeline. 
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{ref}
