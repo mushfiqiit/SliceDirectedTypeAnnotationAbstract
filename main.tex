@@ -1,7 +1,9 @@
 \documentclass[sigplan,screen]{acmart}
 \usepackage[utf8]{inputenc}
 \usepackage{microtype}
-
+\makeatletter
+\def\UrlBreaks{\do\/\do-}
+\makeatother
 %%% The following is specific to SPLASH '26-SRC and the paper
 %%% 'Slice-Guided, Context-Augmented Large Language Model Inference of Java Nullability Annotations'
 %%% by Mushfiqur Rahman Chowdhury.
@@ -19,8 +21,6 @@
 \received[accepted]{2026-07-25}
 
 \begin{document}
-
-\title[Slice-Guided LLM Inference of Nullability Annotations]{Slice-Guided, Context-Augmented Large Language Model Inference of Java Nullability Annotations}
 
 \title{Slice-Guided, Context-Augmented Large Language Model Inference of Java Nullability Annotations}
 
@@ -71,11 +71,11 @@ Java nullness checkers such as NullAway catch potential null-pointer errors, but
 
 \section{Introduction}
 
-Null-pointer errors remain a common source of Java reliability bugs. Static nullness checkers such as NullAway~\cite{banerjee2019nullaway}, the Checker Framework Nullness Checker~\cite{papi2008practical}, and Meta's NullSafe~\cite{meta_nullsafe} catch potential null dereferences, but only as well as the annotations on method returns, parameters, and fields allow. Incomplete or missing annotations mean retrofitting them by hand requires understanding usage patterns across the whole codebase which is a real barrier to adoption.
+Null-pointer errors remain a common source of Java reliability bugs. Static nullness checkers such as NullAway~\cite{banerjee2019nullaway}, the Checker Framework Nullness Checker~\cite{papi2008practical}, and Meta's NullSafe~\cite{meta_nullsafe} catch potential null dereferences, but only as well as the annotations in the code allow. Incomplete or missing annotations mean retrofitting them by hand requires understanding usage patterns across the whole codebase which is a real barrier to adoption.
 
 A few tools automate this. NullAwayAnnotator~\cite{karimipour2023practical} performs iterative, search-based inference for NullAway, and learning-based approaches such as NullGTN~\cite{siddiqui2024inferring} and NullRepair~\cite{karimipour2025llm} predict or repair nullability directly. All are nullability-specific. The Checker Framework's whole-program inference ("WPI")~\cite{kellogg2023pluggable} is the only technique not tied to a single property, but a recent comparison~\cite{karimipour2025new} found it infers nullability poorly.
 
-LLMs look attractive here, but handing one an entire repository is impractical, and a recent baseline shows unconstrained prompting yields limited accuracy~\cite{karimipour2025llm}. We instead treat the LLM as a constrained component inside a static-analysis feedback loop. NullAway points to where annotations are needed, Specimin~\cite{nguyen2025static} extracts the minimum compilable code needed to trigger each warning, turning one repository-scale problem into many small, checkable ones that fit an LLM's context window. We add a usage-context pass that supplies the evidence the slice leaves out from which the LLM proposes annotations, and NullAway verifies the result.
+LLMs look attractive here, but handing one an entire repository is impractical, and a recent baseline shows unconstrained prompting yields limited accuracy~\cite{karimipour2025llm}. We instead treat the LLM as a constrained component inside a static-analysis feedback loop. NullAway points to where annotations are needed, Specimin~\cite{nguyen2025static} extracts the minimum compilable code needed to trigger each warning, turning one repository-scale problem into many small, checkable ones that fit an LLM's context window. 
 
 % ----------------------------------------------------------------------
 \begin{figure}[t]
