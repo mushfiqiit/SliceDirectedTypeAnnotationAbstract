@@ -3,14 +3,6 @@
 \usepackage{microtype}
 \usepackage{hyphenat}
 
-\makeatletter
-\renewcommand{\@formatdoi}[1]{%
-  \href{https://doi.org/#1}{%
-    \mbox{https://doi.org/}\allowbreak\mbox{#1}%
-  }%
-}
-\makeatother
-
 %%% The following is specific to SPLASH '26-SRC and the paper
 %%% 'Slice-Guided, Context-Augmented Large Language Model Inference of Java Nullability Annotations'
 %%% by Mushfiqur Rahman Chowdhury.
@@ -29,7 +21,9 @@
 
 \begin{document}
 
-\title{Slice-Guided, Context-Augmented Large Language Model Inference of Java Nullability Annotations}
+\title[Slice-Guided LLM Nullability Inference]{
+  Slice-Guided, Context-Augmented Large Language Model Inference of Java Nullability Annotations
+}
 
 \author{Mushfiqur Rahman Chowdhury}
 \orcid{0009-0004-4461-8467}
@@ -106,7 +100,7 @@ The pipeline runs in five stages (Figure~\ref{fig:approach}). (1)~\emph{Warning 
 Specimin~\cite{nguyen2025static} is a \emph{type-directed program slicer}. Given a program and target methods or fields, it produces a small compilable program that preserves the declared types and signatures those targets depend on, stubbing out everything else's body. The result is a self-contained reproduction of the warning that NullAway can run on directly.
 
 \paragraph{Usage Context.}
-Specimin's stubbing replaces non-target method bodies and removes the code that constrains a field's type, its dereferences, null-guards (\texttt{if (x != null)}), and assignments in \emph{other} methods. Without that evidence, the model over-approximates and marks fields \texttt{@Nullable} defensively. Rather than grow the slice and inflate token cost, we keep it minimal and separately pull, from the original source, the lines that reference each field in the slice. These go to the model as labelled, read-only evidence, not compilable code, giving it two complementary inputs: the compilable slice the checker also consumes, and textual usage evidence only the model sees. Since this evidence is just def/use information, none of this mechanism is specific to nullability.
+Specimin's stubbing replaces non-target method bodies and removes the code that constrains a field's type, its dereferences, null-guards (\texttt{if (x != null)}), and assignments in \emph{other} methods. Without that evidence, the model over-approximates and marks fields \texttt{@Nullable} defensively. Specimin can omit important field-usage context from the generated slice, which may lead the LLM to incorrect nullability inferences. We therefore extract the relevant field references from the original source and provide them separately as usage context. These go to the model as labelled, read-only evidence, not compilable code, giving it two complementary inputs: the compilable slice the checker also consumes, and textual usage evidence only the model sees. Since this evidence is just def/use information, none of this mechanism is specific to nullability.
 
 \paragraph{Evidence-Driven Post-Processing.}
 After merge-back we run a correction loop: NullAway re-runs, each remaining warning is mapped by location to the responsible annotation, and that annotation is corrected to whatever value the evidence supports, e.g., a field marked \texttt{@Nullable} becomes \texttt{@Nonnull} once evidence shows it is never assigned, returned, or compared against null. The loop then repeats. Progress is guaranteed: each step moves an annotation toward its evidence-supported value and never reverts it, and declarations are finite. The rule is checker-agnostic: it only needs a warning's location and generic def/use evidence, which NullAway simply supplies.
@@ -140,7 +134,7 @@ We evaluate the prototype on the EventBus project~\cite{eventbus} (Table~\ref{ta
 
 Our contribution is a single, integrated technique which is a warning-guided, slice- and context-augmented, checker-verified pipeline that, on EventBus, clears all the warnings NullAwayAnnotator leaves behind using type annotations alone.
 
-Beyond nullability, our goal is a type-system-independent technique; three of five stages already are checker-agnostic: warning extraction only needs a diagnostic with a source location, slicing via Specimin only needs declared types and signatures, not their nullability and merge-back only needs Java syntax. Adapting the pipeline to a new checker requires only two changes: the annotation vocabulary given to the LLM and the logic used in post-processing. We plan to test this on checkers for array-indexing safety~\cite{kellogg2018lightweight} and resource-leak detection~\cite{kellogg2021lightweight}.
+Beyond nullability, our goal is to develop a type-system-independent technique. Three of the five stages are already checker-agnostic. Warning extraction only requires a diagnostic with a source location, slicing with Specimin relies only on declared types and signatures rather than their nullability, and merge-back requires only Java syntax. Adapting the pipeline to a new checker requires only two changes: the annotation vocabulary given to the LLM and the logic used in post-processing. We plan to test this on checkers for array-indexing safety~\cite{kellogg2018lightweight} and resource-leak detection~\cite{kellogg2021lightweight}.
 
 The approach still has limitations. A key one is Specimin itself. It is a young tool, and a warning's root method does not always reproduce inside the generated slice, so some warnings in the program slices never reach the LLM and the pipeline's resolution rate drops. We plan to evaluate on more, larger Java projects and multiple LLMs to further evaluate the performance of our pipeline. 
 
