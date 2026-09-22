@@ -126,7 +126,7 @@ LLMs look attractive here, but handing one an entire repository is impractical, 
         minimum width=16mm, minimum height=8mm},
       pipcap/.style={font=\scriptsize, text=black},
       arr/.style={-{Stealth[length=2.2mm]}, very thick},
-      elbl/.style={font=\scriptsize, midway},
+      elbl/.style={font=\scriptsize, midway, fill=white, inner sep=1.5pt},
     ]
     % ---- Row 1: warning-guided slicing and inference ----
     \node[napbox] (na1)
@@ -180,12 +180,12 @@ LLMs look attractive here, but handing one an entire repository is impractical, 
     \draw[arr, draw=pipAmber] (upd.south) -- ++(0,-6mm) -|
       node[elbl, below, text=pipAmber]{repeat} (acode.south);
     \draw[arr] (merge.south) -- ++(0,-4mm) -|
-      node[elbl, right]{enters loop} (acode.north);
+      node[elbl, above]{enters loop} (acode.north);
 
     \begin{scope}[on background layer]
       \node[draw=gray, dashed, rounded corners=10pt, fill=gray!5,
         fit=(acode)(na2)(dec)(extr)(upd), inner sep=6mm,
-        label={[gray,font=\scriptsize]above right:Stage 5 --- post-processing loop}]
+        label={[gray,font=\scriptsize]above right:Post-processing loop}]
         {};
     \end{scope}
   \end{tikzpicture}%
