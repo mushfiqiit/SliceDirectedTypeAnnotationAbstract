@@ -4,7 +4,22 @@
 \usepackage{hyphenat}
 \usepackage{amssymb}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc,fit,backgrounds}
+
+\definecolor{pipIndigo}{RGB}{79,70,229}
+\definecolor{pipIndigoFill}{RGB}{238,242,255}
+\definecolor{pipRed}{RGB}{220,38,38}
+\definecolor{pipRedFill}{RGB}{254,242,242}
+\definecolor{pipCyan}{RGB}{8,145,178}
+\definecolor{pipCyanFill}{RGB}{236,254,255}
+\definecolor{pipViolet}{RGB}{124,58,237}
+\definecolor{pipVioletFill}{RGB}{245,243,255}
+\definecolor{pipGreen}{RGB}{22,163,74}
+\definecolor{pipGreenFill}{RGB}{240,253,244}
+\definecolor{pipAmber}{RGB}{180,83,9}
+\definecolor{pipAmberFill}{RGB}{255,251,235}
+\definecolor{pipOrange}{RGB}{234,88,12}
+\definecolor{pipOrangeFill}{RGB}{255,247,237}
 
 %%% The following is specific to SPLASH '26 and the paper
 %%% 'Slice-Guided, Context-Augmented Large Language Model Inference of Java Nullability Annotations'
@@ -82,31 +97,57 @@ A few tools automate this. NullAwayAnnotator~\cite{karimipour2023practical} perf
 LLMs look attractive here, but handing one an entire repository is impractical, and a recent baseline shows unconstrained prompting yields limited accuracy~\cite{karimipour2025llm}. We instead treat the LLM as a constrained component inside a static-analysis feedback loop. NullAway points to where annotations are needed, Specimin~\cite{nguyen2025static} extracts the minimum compilable code needed to trigger each warning, turning one repository-scale problem into many small, checkable ones that fit an LLM's context window. 
 
 % ----------------------------------------------------------------------
-\newcommand{\pipiconline}[1]{{\bfseries\large #1}}
-\newcommand{\pipcapline}[1]{{\scriptsize #1}}
 \begin{figure}[t]
   \centering
   \resizebox{\columnwidth}{!}{%
   \begin{tikzpicture}[
-      box/.style={rectangle, rounded corners=3pt, draw, thick, fill=gray!8,
-        minimum width=17mm, minimum height=12mm, align=center, inner sep=2pt},
-      dec/.style={diamond, draw, thick, fill=gray!8, aspect=2.2, align=center,
+      napbox/.style={rectangle, rounded corners=3pt, draw=pipIndigo, very thick,
+        fill=pipIndigoFill, minimum width=18mm, minimum height=13mm,
+        align=center, inner sep=2pt, font=\scriptsize},
+      codebox/.style={rectangle, rounded corners=3pt, draw=pipCyan, very thick,
+        fill=pipCyanFill, minimum width=19mm, minimum height=14mm,
+        align=center, inner sep=2pt, font=\scriptsize},
+      llmbox/.style={rectangle, rounded corners=3pt, draw=pipViolet, very thick,
+        fill=pipVioletFill, minimum width=18mm, minimum height=13mm,
+        align=center, inner sep=2pt, font=\scriptsize},
+      mergebox/.style={rectangle, rounded corners=3pt, draw=pipGreen, very thick,
+        fill=pipGreenFill, minimum width=18mm, minimum height=13mm,
+        align=center, inner sep=2pt, font=\scriptsize},
+      evidbox/.style={rectangle, rounded corners=3pt, draw=pipAmber, very thick,
+        fill=pipAmberFill, minimum width=20mm, minimum height=14mm,
+        align=center, inner sep=2pt, font=\scriptsize},
+      warnshape/.style={regular polygon, regular polygon sides=3,
+        draw=pipRed, very thick, fill=pipRedFill, minimum size=17mm,
         inner sep=0pt},
-      term/.style={ellipse, draw, thick, fill=gray!20, align=center,
-        inner sep=2pt, font=\scriptsize},
-      arr/.style={-{Stealth[length=2.2mm]}, thick},
+      decshape/.style={diamond, draw=pipOrange, very thick, fill=pipOrangeFill,
+        aspect=2.2, align=center, inner sep=0pt, font=\scriptsize},
+      termshape/.style={ellipse, draw=pipGreen, very thick, fill=pipGreenFill,
+        align=center, inner sep=2pt, font=\scriptsize,
+        minimum width=16mm, minimum height=8mm},
+      pipcap/.style={font=\scriptsize, text=black},
+      arr/.style={-{Stealth[length=2.2mm]}, very thick},
       elbl/.style={font=\scriptsize, midway},
     ]
     % ---- Row 1: warning-guided slicing and inference ----
-    \node[box] (na1) {\pipiconline{NA}\\[1pt]\pipcapline{NullAway}};
-    \node[box, right=9mm of na1] (warn)
-      {\pipiconline{!}\\[1pt]\pipcapline{Warnings}};
-    \node[box, right=9mm of warn] (slice)
-      {\pipiconline{\texttt{<>}}\\[1pt]\pipcapline{Specimin Slice}\\\pipcapline{+ Context}};
-    \node[box, right=9mm of slice] (llm)
-      {\pipiconline{LLM}\\[1pt]\pipcapline{Inference}};
-    \node[box, right=9mm of llm] (merge)
-      {\pipiconline{$\rightleftarrows$}\\[1pt]\pipcapline{Merge-back}};
+    \node[napbox] (na1)
+      {\tikz[baseline=-0.5ex]{
+         \draw[very thick, pipIndigo] (0,0) circle (1.6mm);
+         \draw[very thick, pipIndigo] (-0.9mm,0mm) -- (-0.2mm,-0.7mm) -- (1.1mm,0.9mm);
+       }\\[1pt] NullAway};
+    \node[warnshape, right=9mm of na1] (warn) {\Large\textbf{\textcolor{pipRed}{!}}};
+    \node[pipcap, below=1mm of warn] (warnlbl) {Warnings};
+    \node[codebox, right=11mm of warn] (slice)
+      {\texttt{\textcolor{pipCyan}{<>}}\\[1pt] Specimin Slice\\ + Context};
+    \node[llmbox, right=9mm of slice] (llm)
+      {\tikz[baseline=-0.5ex]{
+         \fill[pipViolet] (0,1.8mm) circle (0.5mm);
+         \fill[pipViolet] (-1.6mm,-0.6mm) circle (0.5mm);
+         \fill[pipViolet] (1.6mm,-0.6mm) circle (0.5mm);
+         \draw[pipViolet, thick] (0,1.8mm) -- (-1.6mm,-0.6mm);
+         \draw[pipViolet, thick] (0,1.8mm) -- (1.6mm,-0.6mm);
+       }\\[1pt] LLM Inference};
+    \node[mergebox, right=9mm of llm] (merge)
+      {\textcolor{pipGreen}{\Large $\rightleftarrows$}\\[1pt] Merge-back};
 
     \draw[arr] (na1) -- (warn);
     \draw[arr] (warn) -- (slice);
@@ -114,31 +155,45 @@ LLMs look attractive here, but handing one an entire repository is impractical, 
     \draw[arr] (llm) -- (merge);
 
     % ---- Row 2: evidence-driven post-processing loop ----
-    \node[box, below=17mm of na1] (acode)
-      {\pipiconline{\texttt{<>}}\\[1pt]\pipcapline{Annotated Code}};
-    \node[box, right=9mm of acode] (na2)
-      {\pipiconline{NA}\\[1pt]\pipcapline{NullAway}};
-    \node[dec, right=9mm of na2] (dec)
-      {\pipcapline{Warnings}\\\pipcapline{remaining?}};
-    \node[box, right=9mm of dec] (extr)
-      {\pipiconline{E}\\[1pt]\pipcapline{Extract}\\\pipcapline{Evidence}};
-    \node[box, right=9mm of extr] (upd)
-      {\pipiconline{@}\\[1pt]\pipcapline{Update}\\\pipcapline{Annotation}};
-    \node[term, below=9mm of dec] (done) {\pipcapline{Done}};
+    \node[codebox, below=17mm of na1] (acode)
+      {\texttt{\textcolor{pipCyan}{<>}}\\[1pt] Annotated\\ Code};
+    \node[napbox, right=9mm of acode] (na2)
+      {\tikz[baseline=-0.5ex]{
+         \draw[very thick, pipIndigo] (0,0) circle (1.6mm);
+         \draw[very thick, pipIndigo] (-0.9mm,0mm) -- (-0.2mm,-0.7mm) -- (1.1mm,0.9mm);
+       }\\[1pt] NullAway};
+    \node[decshape, right=9mm of na2] (dec) {Warnings\\ remain?};
+    \node[evidbox, right=9mm of dec] (extr)
+      {\tikz[baseline=-0.5ex]{
+         \draw[very thick, pipAmber] (0,0.3mm) circle (1.3mm);
+         \draw[very thick, pipAmber] (0.9mm,-0.6mm) -- (1.8mm,-1.5mm);
+       }\\[1pt] Extract Usage\\ Evidence};
+    \node[evidbox, right=9mm of extr] (upd)
+      {\textcolor{pipAmber}{\Large\textbf{@}}\\[1pt] Update\\ Annotation};
+    \node[termshape, below=9mm of dec] (done) {\textbf{\textcolor{pipGreen}{Done}}};
 
     \draw[arr] (acode) -- (na2);
     \draw[arr] (na2) -- (dec);
-    \draw[arr] (dec) -- node[elbl, above]{Yes} (extr);
-    \draw[arr] (dec) -- node[elbl, right]{No} (done);
+    \draw[arr, draw=pipGreen] (dec) -- node[elbl, above, text=pipGreen]{Yes} (extr);
+    \draw[arr, draw=pipRed] (dec) -- node[elbl, right, text=pipRed]{No} (done);
     \draw[arr] (extr) -- (upd);
-    \draw[arr] (upd.south) -- ++(0,-6mm) -| node[elbl, below]{repeat} (acode.south);
-    \draw[arr] (merge.south) -- ++(0,-4mm) -| node[elbl, right]{post-processing} (acode.north);
+    \draw[arr, draw=pipAmber] (upd.south) -- ++(0,-6mm) -|
+      node[elbl, below, text=pipAmber]{repeat} (acode.south);
+    \draw[arr] (merge.south) -- ++(0,-4mm) -|
+      node[elbl, right]{enters loop} (acode.north);
+
+    \begin{scope}[on background layer]
+      \node[draw=gray, dashed, rounded corners=10pt, fill=gray!5,
+        fit=(acode)(na2)(dec)(extr)(upd), inner sep=6mm,
+        label={[gray,font=\scriptsize]above right:Stage 5 --- post-processing loop}]
+        {};
+    \end{scope}
   \end{tikzpicture}%
   }
   \caption{Pipeline overview. NullAway warnings drive Specimin to extract a
 minimal slice and usage context; an LLM infers
 \texttt{@Nullable}/\texttt{@Nonnull} on the slice, the annotations merge
-back, and post-processing re-checks with NullAway and corrects
+back, and the post-processing loop re-checks with NullAway and corrects
 annotations from the evidence until none remain.}
   \label{fig:approach}
 \end{figure}
