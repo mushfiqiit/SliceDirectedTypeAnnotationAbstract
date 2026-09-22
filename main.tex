@@ -2,6 +2,9 @@
 \usepackage[utf8]{inputenc}
 \usepackage{microtype}
 \usepackage{hyphenat}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc}
 
 %%% The following is specific to SPLASH '26 and the paper
 %%% 'Slice-Guided, Context-Augmented Large Language Model Inference of Java Nullability Annotations'
@@ -21,7 +24,7 @@
 
 \begin{document}
 
-\title[Slice-Guided LLM Nullability Inference]{
+\title[Slice-Guided, Context-Augmented Large Language Model Inference \ldots]{
   Slice-Guided, Context-Augm\-ented Large Language Model Inference of Java Nullability Annotations}
 
 \author{Mushfiqur Rahman Chowdhury}
@@ -79,9 +82,59 @@ A few tools automate this. NullAwayAnnotator~\cite{karimipour2023practical} perf
 LLMs look attractive here, but handing one an entire repository is impractical, and a recent baseline shows unconstrained prompting yields limited accuracy~\cite{karimipour2025llm}. We instead treat the LLM as a constrained component inside a static-analysis feedback loop. NullAway points to where annotations are needed, Specimin~\cite{nguyen2025static} extracts the minimum compilable code needed to trigger each warning, turning one repository-scale problem into many small, checkable ones that fit an LLM's context window. 
 
 % ----------------------------------------------------------------------
+\newcommand{\pipiconline}[1]{{\bfseries\large #1}}
+\newcommand{\pipcapline}[1]{{\scriptsize #1}}
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\columnwidth]{SliceDirectedLLMTypeInference.png}
+  \resizebox{\columnwidth}{!}{%
+  \begin{tikzpicture}[
+      box/.style={rectangle, rounded corners=3pt, draw, thick, fill=gray!8,
+        minimum width=17mm, minimum height=12mm, align=center, inner sep=2pt},
+      dec/.style={diamond, draw, thick, fill=gray!8, aspect=2.2, align=center,
+        inner sep=0pt},
+      term/.style={ellipse, draw, thick, fill=gray!20, align=center,
+        inner sep=2pt, font=\scriptsize},
+      arr/.style={-{Stealth[length=2.2mm]}, thick},
+      elbl/.style={font=\scriptsize, midway},
+    ]
+    % ---- Row 1: warning-guided slicing and inference ----
+    \node[box] (na1) {\pipiconline{NA}\\[1pt]\pipcapline{NullAway}};
+    \node[box, right=9mm of na1] (warn)
+      {\pipiconline{!}\\[1pt]\pipcapline{Warnings}};
+    \node[box, right=9mm of warn] (slice)
+      {\pipiconline{\texttt{<>}}\\[1pt]\pipcapline{Specimin Slice}\\\pipcapline{+ Context}};
+    \node[box, right=9mm of slice] (llm)
+      {\pipiconline{LLM}\\[1pt]\pipcapline{Inference}};
+    \node[box, right=9mm of llm] (merge)
+      {\pipiconline{$\rightleftarrows$}\\[1pt]\pipcapline{Merge-back}};
+
+    \draw[arr] (na1) -- (warn);
+    \draw[arr] (warn) -- (slice);
+    \draw[arr] (slice) -- (llm);
+    \draw[arr] (llm) -- (merge);
+
+    % ---- Row 2: evidence-driven post-processing loop ----
+    \node[box, below=17mm of na1] (acode)
+      {\pipiconline{\texttt{<>}}\\[1pt]\pipcapline{Annotated Code}};
+    \node[box, right=9mm of acode] (na2)
+      {\pipiconline{NA}\\[1pt]\pipcapline{NullAway}};
+    \node[dec, right=9mm of na2] (dec)
+      {\pipcapline{Warnings}\\\pipcapline{remaining?}};
+    \node[box, right=9mm of dec] (extr)
+      {\pipiconline{E}\\[1pt]\pipcapline{Extract}\\\pipcapline{Evidence}};
+    \node[box, right=9mm of extr] (upd)
+      {\pipiconline{@}\\[1pt]\pipcapline{Update}\\\pipcapline{Annotation}};
+    \node[term, below=9mm of dec] (done) {\pipcapline{Done}};
+
+    \draw[arr] (acode) -- (na2);
+    \draw[arr] (na2) -- (dec);
+    \draw[arr] (dec) -- node[elbl, above]{Yes} (extr);
+    \draw[arr] (dec) -- node[elbl, right]{No} (done);
+    \draw[arr] (extr) -- (upd);
+    \draw[arr] (upd.south) -- ++(0,-6mm) -| node[elbl, below]{repeat} (acode.south);
+    \draw[arr] (merge.south) -- ++(0,-4mm) -| node[elbl, right]{post-processing} (acode.north);
+  \end{tikzpicture}%
+  }
   \caption{Pipeline overview. NullAway warnings drive Specimin to extract a
 minimal slice and usage context; an LLM infers
 \texttt{@Nullable}/\texttt{@Nonnull} on the slice, the annotations merge
